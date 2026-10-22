@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+### Added
+- 增加微信输入法支持（Windows；中文状态为 1，英文状态为 0）。
+- 使用 IMM `ImmSetOpenStatus` 作为输入法状态设置的兼容回退，并修正 Vim 模式切换时的状态恢复。
+
 ## [0.1.2] - 2025-04-28
 ### Fixed
 - 修复未将koffi添加到依赖项问题。
