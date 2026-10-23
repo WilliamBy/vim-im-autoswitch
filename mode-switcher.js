@@ -54,3 +54,33 @@ function createModeSwitcher({
 }
 
 module.exports = { createModeSwitcher };
+
+/**
+ * Create a focus handler that rechecks the IME state for an active editor.
+ * Normal mode is enforced on focus so external applications cannot leave the
+ * IME in a state that conflicts with the configured Normal mode state.
+ *
+ * @param {object} options
+ * @param {number} options.normalCursorStyle
+ * @param {number} options.defaultIMEStateForNormal
+ * @param {() => number} options.getIMEState
+ * @param {(state: number) => number} options.setIMEState
+ */
+function createEditorFocusChecker({
+	normalCursorStyle,
+	defaultIMEStateForNormal,
+	getIMEState,
+	setIMEState,
+}) {
+	return (editor) => {
+		if (editor?.options?.cursorStyle !== normalCursorStyle) {
+			return;
+		}
+
+		if (getIMEState() !== defaultIMEStateForNormal) {
+			setIMEState(defaultIMEStateForNormal);
+		}
+	};
+}
+
+module.exports.createEditorFocusChecker = createEditorFocusChecker;

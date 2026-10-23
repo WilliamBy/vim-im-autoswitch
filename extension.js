@@ -141,7 +141,8 @@ function activate(context) {
 
 	
 	// 监听编辑器选项的变化（包括光标样式）
-	const modeSwitcher = require('./mode-switcher').createModeSwitcher({
+	const { createModeSwitcher, createEditorFocusChecker } = require('./mode-switcher');
+	const modeSwitcher = createModeSwitcher({
 		normalCursorStyle: cursorStyleForNormal,
 		insertCursorStyle: cursorStyleForInsert,
 		rememberLastIMEState: rememberIMEStateOfInsert,
@@ -151,6 +152,20 @@ function activate(context) {
 		setIMEState,
 	});
 	context.subscriptions.push(vscode.window.onDidChangeTextEditorOptions(modeSwitcher));
+
+	const checkEditorFocus = createEditorFocusChecker({
+		normalCursorStyle: cursorStyleForNormal,
+		defaultIMEStateForNormal: defaultIMEState_Normal,
+		getIMEState,
+		setIMEState,
+	});
+	context.subscriptions.push(vscode.window.onDidChangeActiveTextEditor(checkEditorFocus));
+	context.subscriptions.push(vscode.window.onDidChangeWindowState((state) => {
+		if (state.focused) {
+			checkEditorFocus(vscode.window.activeTextEditor);
+		}
+	}));
+	checkEditorFocus(vscode.window.activeTextEditor);
 
 }
 

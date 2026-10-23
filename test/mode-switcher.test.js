@@ -1,5 +1,5 @@
 const assert = require('assert').strict;
-const { createModeSwitcher } = require('../mode-switcher');
+const { createModeSwitcher, createEditorFocusChecker } = require('../mode-switcher');
 
 function createHarness(overrides = {}) {
 	const calls = [];
@@ -59,5 +59,53 @@ function createHarness(overrides = {}) {
 	onChange({ options: {}, textEditor: { options: { cursorStyle: 2 } } });
 
 	assert.deepEqual(calls, [0]);
+	});
+
+	test('corrects the IME state to the configured Normal state when an editor gains focus', () => {
+	let currentIMEState = 1;
+	const calls = [];
+	const checkEditorFocus = createEditorFocusChecker({
+		normalCursorStyle: 2,
+		defaultIMEStateForNormal: 0,
+		getIMEState: () => currentIMEState,
+		setIMEState: (state) => {
+			calls.push(state);
+			currentIMEState = state;
+			return 1;
+		},
+	});
+
+	checkEditorFocus({ options: { cursorStyle: 2 } });
+
+	assert.deepEqual(calls, [0]);
+	assert.equal(currentIMEState, 0);
+	});
+
+	test('does not rewrite the IME state when it already matches Normal mode', () => {
+	const { calls } = createHarness({ getIMEState: () => 0 });
+	const checkEditorFocus = createEditorFocusChecker({
+		normalCursorStyle: 2,
+		defaultIMEStateForNormal: 0,
+		getIMEState: () => 0,
+		setIMEState: (state) => calls.push(state),
+	});
+
+	checkEditorFocus({ options: { cursorStyle: 2 } });
+
+	assert.deepEqual(calls, []);
+	});
+
+	test('does not alter the IME state when the focused editor is in Insert mode', () => {
+	const { calls } = createHarness();
+	const checkEditorFocus = createEditorFocusChecker({
+		normalCursorStyle: 2,
+		defaultIMEStateForNormal: 0,
+		getIMEState: () => 1,
+		setIMEState: (state) => calls.push(state),
+	});
+
+	checkEditorFocus({ options: { cursorStyle: 1 } });
+
+	assert.deepEqual(calls, []);
 	});
 };
